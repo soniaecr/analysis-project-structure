@@ -1,0 +1,2 @@
+RENV_PATHS_ROOT=00-envs/renv
+RENV_PATHS_LIBRARY=00-envs/renv/library
