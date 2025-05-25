@@ -27,13 +27,19 @@ tryCatch({
   message("renv not yet initialized.")
 })
 
-# --- Conda setup using reticulate without Sys.getenv ---
+# --- Ensure reticulate is installed ---
+if (!requireNamespace("reticulate", quietly = TRUE)) {
+  message("Installing 'reticulate' package ...")
+  install.packages("reticulate")
+}
+
+# --- Conda setup via reticulate (no Sys.getenv) ---
 if (requireNamespace("reticulate", quietly = TRUE)) {
-  conda_env_name <- "conda_env"
+  conda_env_name <- "my-conda-env"
   conda_env_file <- "conda_environment.yml"
   conda_env_path <- file.path("00-envs", conda_env_name)
 
-  # Check if Conda env exists
+  # Check if Conda environment exists
   envs <- tryCatch(reticulate::conda_list(), error = function(e) NULL)
 
   env_exists <- !is.null(envs) && (
@@ -41,17 +47,18 @@ if (requireNamespace("reticulate", quietly = TRUE)) {
     normalizePath(conda_env_path, mustWork = FALSE) %in% normalizePath(envs$python, mustWork = FALSE)
   )
 
-  # Create if missing
+  # Create env from YAML if it doesn't exist
   if (!env_exists && file.exists(conda_env_file)) {
     message("Creating Conda environment at ", conda_env_path)
     system2("conda", c("env", "create", "--prefix", conda_env_path, "-f", conda_env_file))
   }
 
-  # Activate via reticulate
-  reticulate::use_condaenv(condaenv = conda_env_path, required = TRUE)
+  # Activate it
+  reticulate::use_condaenv(conda_env_path, required = TRUE)
   message("✅ Conda environment at '", conda_env_path, "' activated.")
 } else {
-  message("⚠️ reticulate not available — skipping Conda activation.")
+  message("⚠️ reticulate installation failed or not found.")
 }
 
 message("✅ Project environment ready (renv + Conda)")
+
